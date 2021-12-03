@@ -58,10 +58,24 @@ func TestCrunchDiag(t *testing.T) {
 		}
 	})
 
-	t.Run("test final", func(t *testing.T) {
+	t.Run("power", func(t *testing.T) {
 		gamma, epsilon, _, _ := CrunchDiag(diagReport)
 		got, err := GetPower(gamma, epsilon)
 		want := 198
+
+		if err != nil {
+			t.Fatal("Got an error but didn't expect one: ", err)
+		}
+
+		if got != want {
+			t.Errorf("got %d, want %d", got, want)
+		}
+	})
+
+	t.Run("rating", func(t *testing.T) {
+		_, _, o2, co2 := CrunchDiag(diagReport)
+		got, err := GetPower(o2, co2)
+		want := 230
 
 		if err != nil {
 			t.Fatal("Got an error but didn't expect one: ", err)

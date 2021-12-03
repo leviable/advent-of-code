@@ -164,8 +164,10 @@ func main() {
 		panic(fmt.Sprint("Error scanning file: ", err))
 	}
 
-	gamma, epsilon, _, _ := CrunchDiag(diagReport)
+	gamma, epsilon, o2, co2 := CrunchDiag(diagReport)
 	power, _ := GetPower(gamma, epsilon)
+	rating, _ := GetPower(o2, co2)
 
 	fmt.Println("Power is: ", power)
+	fmt.Println("Rating is: ", rating)
 }

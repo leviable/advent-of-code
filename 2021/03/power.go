@@ -132,19 +132,19 @@ func CrunchDiag(diagnostic []string) (string, string, string, string) {
 	return report.Crunch()
 }
 
-func GetPower(gamma, epsilon string) (int, error) {
+func GetTotal(aRaw, bRaw string) (int, error) {
 
-	g, err := strconv.ParseInt(gamma, 2, 64)
+	a, err := strconv.ParseInt(aRaw, 2, 64)
 	if err != nil {
 		return 0, err
 	}
 
-	e, err := strconv.ParseInt(epsilon, 2, 64)
+	b, err := strconv.ParseInt(bRaw, 2, 64)
 	if err != nil {
 		return 0, err
 	}
 
-	return int(g * e), nil
+	return int(a * b), nil
 }
 
 func main() {
@@ -165,8 +165,8 @@ func main() {
 	}
 
 	gamma, epsilon, o2, co2 := CrunchDiag(diagReport)
-	power, _ := GetPower(gamma, epsilon)
-	rating, _ := GetPower(o2, co2)
+	power, _ := GetTotal(gamma, epsilon)
+	rating, _ := GetTotal(o2, co2)
 
 	fmt.Println("Power is: ", power)
 	fmt.Println("Rating is: ", rating)

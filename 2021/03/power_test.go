@@ -38,8 +38,8 @@ func TestCrunchDiag(t *testing.T) {
 	}
 
 	t.Run("test crunch", func(t *testing.T) {
-		gotGamma, gotEpsilon := CrunchDiag(diagReport)
-		wantGamma, wantEpsilon := "10110", "01001"
+		gotGamma, gotEpsilon, gotO2, gotCo2 := CrunchDiag(diagReport)
+		wantGamma, wantEpsilon, wantO2, wantCo2 := "10110", "01001", "10111", "01010"
 
 		if gotGamma != wantGamma {
 			t.Errorf("got %q, want %q", gotGamma, wantGamma)
@@ -48,10 +48,18 @@ func TestCrunchDiag(t *testing.T) {
 		if gotEpsilon != wantEpsilon {
 			t.Errorf("got %q, want %q", gotEpsilon, wantEpsilon)
 		}
+
+		if gotO2 != wantO2 {
+			t.Errorf("got %q, want %q", gotO2, wantO2)
+		}
+
+		if gotCo2 != wantCo2 {
+			t.Errorf("got %q, want %q", gotCo2, wantCo2)
+		}
 	})
 
 	t.Run("test final", func(t *testing.T) {
-		gamma, epsilon := CrunchDiag(diagReport)
+		gamma, epsilon, _, _ := CrunchDiag(diagReport)
 		got, err := GetPower(gamma, epsilon)
 		want := 198
 

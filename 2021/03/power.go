@@ -38,17 +38,24 @@ func (c *Counter) GetVals() (string, string) {
 }
 
 func NewReport() *Report {
-	return &Report{make(map[int]*Counter), 0}
+	return &Report{
+		Count:   make(map[int]*Counter),
+		Entries: make([]string, 0),
+		digits:  0,
+	}
 }
 
 type Report struct {
-	Count  map[int]*Counter
-	digits int
+	Count   map[int]*Counter
+	Entries []string
+	digits  int
 }
 
 func (r *Report) Add(entry string) {
 	var counter *Counter
 	var ok bool
+
+	r.Entries = append(r.Entries, entry)
 	for i, e := range entry {
 		if counter, ok = r.Count[i]; !ok {
 			r.digits++
@@ -59,17 +66,64 @@ func (r *Report) Add(entry string) {
 	}
 }
 
-func (r *Report) Crunch() (string, string) {
-	gamma, epsilon := "", ""
+func (r *Report) Crunch() (gamma string, epsilon string, o2 string, co2 string) {
 	for i := 0; i < r.digits; i++ {
 		g, e := r.Count[i].GetVals()
 		gamma = gamma + g
 		epsilon = epsilon + e
 	}
-	return gamma, epsilon
+
+	o2Selector := func(one, zero int) (use string) {
+		use = "1"
+		if zero > one {
+			use = "0"
+		}
+		return
+	}
+	o2 = r.calcRating(o2Selector, r.Entries[:])
+
+	co2Selector := func(one, zero int) (use string) {
+		use = "0"
+		if one < zero {
+			use = "1"
+		}
+		return
+	}
+	co2 = r.calcRating(co2Selector, r.Entries[:])
+
+	return
 }
 
-func CrunchDiag(diagnostic []string) (string, string) {
+func (r *Report) calcRating(selector func(int, int) string, entries []string) string {
+
+	for i := 0; i < r.digits; i++ {
+		if len(entries) <= 1 {
+			break
+		}
+		one, zero := 0, 0
+		for _, e := range entries {
+			if string(e[i]) == "1" {
+				one++
+			} else {
+				zero++
+			}
+		}
+
+		use := selector(one, zero)
+
+		eCopy := entries[:]
+		entries = make([]string, 0)
+		for _, e := range eCopy {
+			if string(e[i]) == use {
+				entries = append(entries, e)
+			}
+		}
+
+	}
+	return entries[0]
+}
+
+func CrunchDiag(diagnostic []string) (string, string, string, string) {
 	report := NewReport()
 
 	for _, entry := range diagnostic {
@@ -110,7 +164,7 @@ func main() {
 		panic(fmt.Sprint("Error scanning file: ", err))
 	}
 
-	gamma, epsilon := CrunchDiag(diagReport)
+	gamma, epsilon, _, _ := CrunchDiag(diagReport)
 	power, _ := GetPower(gamma, epsilon)
 
 	fmt.Println("Power is: ", power)

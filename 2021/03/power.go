@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"strconv"
 )
 
@@ -36,11 +38,12 @@ func (c *Counter) GetVals() (string, string) {
 }
 
 func NewReport() *Report {
-	return &Report{make(map[int]*Counter)}
+	return &Report{make(map[int]*Counter), 0}
 }
 
 type Report struct {
-	Count map[int]*Counter
+	Count  map[int]*Counter
+	digits int
 }
 
 func (r *Report) Add(entry string) {
@@ -48,6 +51,7 @@ func (r *Report) Add(entry string) {
 	var ok bool
 	for i, e := range entry {
 		if counter, ok = r.Count[i]; !ok {
+			r.digits++
 			r.Count[i] = &Counter{}
 			counter = r.Count[i]
 		}
@@ -57,7 +61,7 @@ func (r *Report) Add(entry string) {
 
 func (r *Report) Crunch() (string, string) {
 	gamma, epsilon := "", ""
-	for i := 0; i < 5; i++ {
+	for i := 0; i < r.digits; i++ {
 		g, e := r.Count[i].GetVals()
 		gamma = gamma + g
 		epsilon = epsilon + e
@@ -87,4 +91,27 @@ func GetPower(gamma, epsilon string) (int, error) {
 	}
 
 	return int(g * e), nil
+}
+
+func main() {
+	file, err := os.Open("input.txt")
+	if err != nil {
+		panic(fmt.Sprint("Could not open file: ", err))
+	}
+	defer file.Close()
+
+	diagReport := make([]string, 0)
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		diagReport = append(diagReport, scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		panic(fmt.Sprint("Error scanning file: ", err))
+	}
+
+	gamma, epsilon := CrunchDiag(diagReport)
+	power, _ := GetPower(gamma, epsilon)
+
+	fmt.Println("Power is: ", power)
 }

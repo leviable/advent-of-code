@@ -36,14 +36,31 @@ func TestCrunchDiag(t *testing.T) {
 		"00010",
 		"01010",
 	}
-	gotGamma, gotEpsilon := CrunchDiag(diagReport)
-	wantGamma, wantEpsilon := "10110", "01001"
 
-	if gotGamma != wantGamma {
-		t.Errorf("got %q, want %q", gotGamma, wantGamma)
-	}
+	t.Run("test crunch", func(t *testing.T) {
+		gotGamma, gotEpsilon := CrunchDiag(diagReport)
+		wantGamma, wantEpsilon := "10110", "01001"
 
-	if gotEpsilon != wantEpsilon {
-		t.Errorf("got %q, want %q", gotEpsilon, wantEpsilon)
-	}
+		if gotGamma != wantGamma {
+			t.Errorf("got %q, want %q", gotGamma, wantGamma)
+		}
+
+		if gotEpsilon != wantEpsilon {
+			t.Errorf("got %q, want %q", gotEpsilon, wantEpsilon)
+		}
+	})
+
+	t.Run("test final", func(t *testing.T) {
+		gamma, epsilon := CrunchDiag(diagReport)
+		got, err := GetPower(gamma, epsilon)
+		want := 198
+
+		if err != nil {
+			t.Fatal("Got an error but didn't expect one: ", err)
+		}
+
+		if got != want {
+			t.Errorf("got %d, want %d", got, want)
+		}
+	})
 }

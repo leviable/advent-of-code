@@ -73,3 +73,18 @@ func CrunchDiag(diagnostic []string) (string, string) {
 	}
 	return report.Crunch()
 }
+
+func GetPower(gamma, epsilon string) (int, error) {
+
+	g, err := strconv.ParseInt(gamma, 2, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	e, err := strconv.ParseInt(epsilon, 2, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return int(g * e), nil
+}

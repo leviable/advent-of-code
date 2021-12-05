@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 type (
@@ -96,7 +97,7 @@ func (b *Board) Start() {
 			}
 			b.calculateScore()
 			b.bingoCh <- b.id
-			break
+			return
 		}
 
 	columnLoop:
@@ -108,7 +109,7 @@ func (b *Board) Start() {
 			}
 			b.calculateScore()
 			b.bingoCh <- b.id
-			break
+			return
 		}
 		b.wg.Done()
 	}
@@ -188,12 +189,13 @@ func PlayBingo(input string) (*Board, error) {
 	wg, bingoCh, numbers, boards := LoadInput(input)
 
 	boardCount := len(boards)
+	// bingosFound := 0
 	fmt.Printf("Loaded %d boards\n", boardCount)
 
 	for _, num := range numbers {
-		// Do broadcast here
+		boardCount = len(boards)
 
-		wg.Add(boardCount)
+		wg.Add(boardCount - bingosFound)
 		noBingo := make(chan struct{})
 		go func() {
 			wg.Wait()
@@ -204,16 +206,20 @@ func PlayBingo(input string) (*Board, error) {
 			b.newNumCh <- num
 		}
 
+		bingos := make([]int, 0)
 		select {
-		case bingo := <-bingoCh:
-			fmt.Printf("Board %d reported a bingo!\n", bingo+1)
-			return boards[bingo], nil
+		case boardId := <-bingoCh:
+			bingosFound++
+			fmt.Printf("Board %d reported a bingo: %d\n", boardId+1, boards[boardId].score)
+			bingos = append(bingos, boardId)
+			fmt.Println("Boards that found a bingo: ", bingos)
 		case <-noBingo:
+			fmt.Println("Boards that found a bingo: ", bingos)
 			continue
 		}
+		time.Sleep(1000 * time.Millisecond)
 	}
 
-	// TODO: Return error if we get here, ran out of numbers with no winner
 	return &Board{}, errors.New("No board got a bingo")
 }
 

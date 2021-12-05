@@ -20,9 +20,9 @@ func newRow(raw string) (r row) {
 	return
 }
 
-func NewBoard(raw string) *Board {
+func NewBoard(raw []string) *Board {
 	board := &Board{}
-	for _, r := range strings.Split(raw, "\n") {
+	for _, r := range raw {
 		board.rows = append(board.rows, newRow(r))
 	}
 
@@ -38,4 +38,23 @@ func (b *Board) GetRow(n int) (row, error) {
 		return make(row), errors.New(fmt.Sprintf("Row does not exist: %d", n))
 	}
 	return b.rows[n], nil
+}
+
+func LoadInput(input string) ([]string, []*Board) {
+	splitInput := strings.Split(input, "\n")
+
+	bingoNumbers := strings.Split(splitInput[0], ",")
+
+	boards := make([]*Board, 0)
+	boardsRaw := splitInput[2:]
+
+	for len(boardsRaw) > 0 {
+		b := boardsRaw[:5]
+		if len(boardsRaw) > 5 {
+			boardsRaw = boardsRaw[6:]
+		}
+
+		boards = append(boards, NewBoard(b))
+	}
+	return bingoNumbers, boards
 }

@@ -145,4 +145,8 @@ func TestBingo(t *testing.T) {
 	if fmt.Sprint(got.raw) != fmt.Sprint(want.raw) {
 		t.Errorf("got %v, want %v", got.raw, want.raw)
 	}
+
+	if got.score != 4512 {
+		t.Errorf("got %v, want %v", got.score, 4512)
+	}
 }

@@ -37,6 +37,29 @@ func TestNewBoard(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("Columns", func(t *testing.T) {
+		board := NewBoard(boardRaw)
+		want := []map[string]bool{
+			map[string]bool{"22": false, "8": false, "21": false, "6": false, "1": false},
+			map[string]bool{"13": false, "2": false, "9": false, "10": false, "12": false},
+			map[string]bool{"17": false, "23": false, "14": false, "3": false, "20": false},
+			map[string]bool{"11": false, "4": false, "16": false, "18": false, "15": false},
+			map[string]bool{"0": false, "24": false, "7": false, "5": false, "19": false},
+		}
+
+		for i := 0; i < 5; i++ {
+			got, err := board.GetColumn(i)
+
+			if err != nil {
+				t.Fatalf("Got an error and didn't expect one: %v", err)
+			}
+
+			if fmt.Sprint(got) != fmt.Sprint(want[i]) {
+				t.Errorf("got %v, want %v", got, want[i])
+			}
+		}
+	})
 }
 
 func TestLoadInput(t *testing.T) {

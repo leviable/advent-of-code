@@ -1,8 +1,17 @@
 package main
 
 import (
+	"bufio"
+	"fmt"
+	"os"
 	"strconv"
 	"strings"
+)
+
+const (
+	DIAGONAL   = "diagonal"
+	HORIZONTAL = "horizontal"
+	VERTICAL   = "vertical"
 )
 
 type Point struct {
@@ -47,6 +56,9 @@ func NewLine(raw string) (Line, error) {
 func LoadInput(input string) ([]Line, error) {
 	lines := make([]Line, 0)
 	for _, line := range strings.Split(input, "\n") {
+		if line == "" {
+			continue
+		}
 		l, err := NewLine(line)
 		if err != nil {
 			return []Line{}, err
@@ -56,17 +68,21 @@ func LoadInput(input string) ([]Line, error) {
 	return lines, nil
 }
 
-type Grid struct {
-	origin, end Point
+func NewGrid(lines []Line) *Grid {
+	origin := Point{100_000, 100_000}
+	end := Point{0, 0}
+	grid := make(map[Point]int)
+	return &Grid{origin, end, lines, grid}
 }
 
-func GetGrid(lines []Line) Grid {
-	origin := Point{100_000, 100_000}
+type Grid struct {
+	origin, end Point
+	lines       []Line
+	grid        map[Point]int
+}
 
-	end := Point{0, 0}
-
-	g := Grid{origin, end}
-	for _, line := range lines {
+func (g *Grid) findBoundaries() {
+	for _, line := range g.lines {
 		if line.begin.x < g.origin.x {
 			g.origin.x = line.begin.x
 		}
@@ -92,5 +108,104 @@ func GetGrid(lines []Line) Grid {
 			g.end.y = line.begin.y
 		}
 	}
+}
+
+func (g *Grid) traceLines() {
+	for _, line := range g.lines {
+		for _, point := range getAllPoints(line) {
+			if _, ok := g.grid[point]; !ok {
+				g.grid[point] = 1
+			} else {
+				g.grid[point] += 1
+			}
+		}
+	}
+}
+
+func getDirection(line Line) string {
+	if line.begin.x == line.end.x {
+		return VERTICAL
+	} else if line.begin.y == line.end.y {
+		return HORIZONTAL
+	} else {
+		return DIAGONAL
+	}
+
+}
+
+func getAllPoints(line Line) []Point {
+	var start, end int
+	points := make([]Point, 0)
+	switch getDirection(line) {
+	case HORIZONTAL:
+		if line.begin.x < line.end.x {
+			start = line.begin.x
+			end = line.end.x
+		} else {
+			start = line.end.x
+			end = line.begin.x
+		}
+		for x := start; x < end+1; x++ {
+			points = append(points, Point{x, line.begin.y})
+		}
+	case VERTICAL:
+		if line.begin.y < line.end.y {
+			start = line.begin.y
+			end = line.end.y
+		} else {
+			start = line.end.y
+			end = line.begin.y
+		}
+		for y := start; y < end+1; y++ {
+			points = append(points, Point{line.begin.x, y})
+		}
+	case DIAGONAL:
+		//noop
+	}
+	return points
+}
+
+func (g *Grid) DangerScore() (score int) {
+	for _, v := range g.grid {
+		if v > 1 {
+			score++
+		}
+	}
+	return
+}
+
+func GetGrid(lines []Line) *Grid {
+
+	g := NewGrid(lines)
+	g.findBoundaries()
+	g.traceLines()
+
 	return g
+}
+
+func main() {
+	file, err := os.Open("input.txt")
+	if err != nil {
+		panic(fmt.Sprint("Could not open file: ", err))
+	}
+	defer file.Close()
+
+	ventData := ""
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		ventData += scanner.Text() + "\n"
+	}
+
+	if err := scanner.Err(); err != nil {
+		panic(fmt.Sprint("Error scanning file: ", err))
+	}
+
+	lines, err := LoadInput(ventData)
+	if err != nil {
+		panic(fmt.Sprint("Got an error while loading input data: ", err))
+	}
+
+	grid := GetGrid(lines)
+
+	fmt.Println("The danger score is: ", grid.DangerScore())
 }

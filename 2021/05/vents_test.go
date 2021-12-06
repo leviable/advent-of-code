@@ -16,7 +16,7 @@ const input = `0,9 -> 5,9
 0,0 -> 8,8
 5,5 -> 8,2`
 
-func TestLoad(t *testing.T) {
+func TestLoadInput(t *testing.T) {
 
 	got, err := LoadInput(input)
 	want := []Line{
@@ -44,10 +44,27 @@ func TestLoad(t *testing.T) {
 func TestGetGrid(t *testing.T) {
 	lines, _ := LoadInput(input)
 
-	got := GetGrid(lines)
-	want := Grid{Point{0, 0}, Point{9, 9}}
+	t.Run("grid creation", func(t *testing.T) {
+		got := GetGrid(lines)
+		want := &Grid{Point{0, 0}, Point{9, 9}, lines, make(map[Point]int)}
 
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("got %v, want %v", got, want)
-	}
+		if !reflect.DeepEqual(got.origin, want.origin) {
+			t.Errorf("got %v, want %v", got.origin, want.origin)
+		}
+
+		if !reflect.DeepEqual(got.end, want.end) {
+			t.Errorf("got %v, want %v", got.end, want.end)
+		}
+	})
+
+	t.Run("danger score", func(t *testing.T) {
+		grid := GetGrid(lines)
+		got := grid.DangerScore()
+		want := 5
+
+		if got != want {
+			t.Errorf("got %d, want %d", got, want)
+		}
+
+	})
 }

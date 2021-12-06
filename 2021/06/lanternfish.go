@@ -1,6 +1,9 @@
 package main
 
 import (
+	"bufio"
+	"fmt"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -65,4 +68,34 @@ func (s *School) NextDay() {
 			s.fish = append(s.fish, newFish)
 		}
 	}
+}
+
+func main() {
+	file, err := os.Open("input.txt")
+	if err != nil {
+		panic(fmt.Sprint("Could not open file: ", err))
+	}
+	defer file.Close()
+
+	fishData := ""
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		fishData += scanner.Text()
+	}
+
+	if err := scanner.Err(); err != nil {
+		panic(fmt.Sprint("Error scanning file: ", err))
+	}
+
+	fish, err := LoadInput(fishData)
+	if err != nil {
+		panic(fmt.Sprint("Got an error and didn't expect it: ", err))
+	}
+
+	school := NewSchool(fish)
+	for x := 0; x < 80; x++ {
+		school.NextDay()
+	}
+
+	fmt.Println("After 80 days the school size is: ", school.Size())
 }

@@ -104,6 +104,7 @@ func TestSchoolAging(t *testing.T) {
 		{name: "after 2 days", days: 2, size: 6},
 		{name: "after 18 days", days: 18, size: 26},
 		{name: "after 80 days", days: 80, size: 5934},
+		{name: "after 256 days", days: 256, size: 26984457539},
 	}
 
 	for _, tt := range days {

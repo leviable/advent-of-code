@@ -8,10 +8,16 @@ import (
 	"strings"
 )
 
+type direction int
+type problemPart int
+
 const (
-	DIAGONAL   = "diagonal"
-	HORIZONTAL = "horizontal"
-	VERTICAL   = "vertical"
+	DIAGONAL direction = iota
+	HORIZONTAL
+	VERTICAL
+
+	partOne problemPart = iota
+	partTwo
 )
 
 type Point struct {
@@ -68,17 +74,18 @@ func LoadInput(input string) ([]Line, error) {
 	return lines, nil
 }
 
-func NewGrid(lines []Line) *Grid {
+func NewGrid(lines []Line, part problemPart) *Grid {
 	origin := Point{100_000, 100_000}
 	end := Point{0, 0}
 	grid := make(map[Point]int)
-	return &Grid{origin, end, lines, grid}
+	return &Grid{origin, end, lines, grid, part}
 }
 
 type Grid struct {
 	origin, end Point
 	lines       []Line
 	grid        map[Point]int
+	part        problemPart
 }
 
 func (g *Grid) findBoundaries() {
@@ -112,7 +119,7 @@ func (g *Grid) findBoundaries() {
 
 func (g *Grid) traceLines() {
 	for _, line := range g.lines {
-		for _, point := range getAllPoints(line) {
+		for _, point := range getAllPoints(line, g.part) {
 			if _, ok := g.grid[point]; !ok {
 				g.grid[point] = 1
 			} else {
@@ -122,7 +129,7 @@ func (g *Grid) traceLines() {
 	}
 }
 
-func getDirection(line Line) string {
+func getDirection(line Line) direction {
 	if line.begin.x == line.end.x {
 		return VERTICAL
 	} else if line.begin.y == line.end.y {
@@ -133,7 +140,7 @@ func getDirection(line Line) string {
 
 }
 
-func getAllPoints(line Line) []Point {
+func getAllPoints(line Line, part problemPart) []Point {
 	var start, end int
 	points := make([]Point, 0)
 	switch getDirection(line) {
@@ -160,9 +167,40 @@ func getAllPoints(line Line) []Point {
 			points = append(points, Point{line.begin.x, y})
 		}
 	case DIAGONAL:
-		//noop
+		if part != partTwo {
+			break
+		}
+		// Need to see if it's at exactly 45 degrees
+		// If the horizontal length == vertical length, 👌
+		xDelta := line.end.x - line.begin.x
+		yDelta := line.end.y - line.begin.y
+		if abs(xDelta) != abs(yDelta) {
+			return points
+		}
+
+		points = append(points, Point{line.begin.x, line.begin.y})
+		nextX := next(line.begin.x, xDelta)
+		nextY := next(line.begin.y, yDelta)
+
+		for len(points) < abs(xDelta)+1 {
+			points = append(points, Point{nextX(), nextY()})
+		}
 	}
 	return points
+}
+
+func next(start, change int) func() int {
+	val := start
+	if change < 0 {
+		change = -1
+	} else {
+		change = 1
+	}
+	return func() int {
+		val += change
+		return val
+	}
+
 }
 
 func (g *Grid) DangerScore() (score int) {
@@ -174,13 +212,20 @@ func (g *Grid) DangerScore() (score int) {
 	return
 }
 
-func GetGrid(lines []Line) *Grid {
+func GetGrid(lines []Line, part problemPart) *Grid {
 
-	g := NewGrid(lines)
+	g := NewGrid(lines, part)
 	g.findBoundaries()
 	g.traceLines()
 
 	return g
+}
+
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
 }
 
 func main() {
@@ -205,7 +250,9 @@ func main() {
 		panic(fmt.Sprint("Got an error while loading input data: ", err))
 	}
 
-	grid := GetGrid(lines)
+	grid := GetGrid(lines, partOne)
+	fmt.Println("The danger score for part one is: ", grid.DangerScore())
 
-	fmt.Println("The danger score is: ", grid.DangerScore())
+	grid = GetGrid(lines, partTwo)
+	fmt.Println("The danger score for part two is: ", grid.DangerScore())
 }

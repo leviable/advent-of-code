@@ -45,8 +45,8 @@ func TestGetGrid(t *testing.T) {
 	lines, _ := LoadInput(input)
 
 	t.Run("grid creation", func(t *testing.T) {
-		got := GetGrid(lines)
-		want := &Grid{Point{0, 0}, Point{9, 9}, lines, make(map[Point]int)}
+		got := GetGrid(lines, partOne)
+		want := &Grid{Point{0, 0}, Point{9, 9}, lines, make(map[Point]int), partOne}
 
 		if !reflect.DeepEqual(got.origin, want.origin) {
 			t.Errorf("got %v, want %v", got.origin, want.origin)
@@ -57,8 +57,8 @@ func TestGetGrid(t *testing.T) {
 		}
 	})
 
-	t.Run("danger score", func(t *testing.T) {
-		grid := GetGrid(lines)
+	t.Run("danger score part one", func(t *testing.T) {
+		grid := GetGrid(lines, partOne)
 		got := grid.DangerScore()
 		want := 5
 
@@ -67,4 +67,56 @@ func TestGetGrid(t *testing.T) {
 		}
 
 	})
+
+	t.Run("danger score part two", func(t *testing.T) {
+		grid := GetGrid(lines, partTwo)
+		got := grid.DangerScore()
+		want := 12
+
+		if got != want {
+			t.Errorf("got %d, want %d", got, want)
+		}
+
+	})
+}
+
+func TestGetAllPoints(t *testing.T) {
+	examples := []struct {
+		name   string
+		line   string
+		part   problemPart
+		points []Point
+	}{
+		{name: "horizontal",
+			line:   "1,1 -> 1,3",
+			part:   partOne,
+			points: []Point{Point{1, 1}, Point{1, 2}, Point{1, 3}}},
+		{name: "vertical",
+			line:   "9,7 -> 7,7",
+			part:   partOne,
+			points: []Point{Point{7, 7}, Point{8, 7}, Point{9, 7}}},
+		{name: "diagonal 1",
+			line:   "1,1 -> 3,3",
+			part:   partTwo,
+			points: []Point{Point{1, 1}, Point{2, 2}, Point{3, 3}}},
+		{name: "diagonal 2",
+			line:   "9,7 -> 7,9",
+			part:   partTwo,
+			points: []Point{Point{9, 7}, Point{8, 8}, Point{7, 9}}},
+	}
+	for _, tt := range examples {
+		t.Run(tt.name, func(t *testing.T) {
+			line, err := NewLine(tt.line)
+			got := getAllPoints(line, tt.part)
+			want := tt.points
+
+			if err != nil {
+				t.Fatal("Got an error and didn't expect one: ", err)
+			}
+
+			if !reflect.DeepEqual(got, want) {
+				t.Errorf("got %v, want %v", got, want)
+			}
+		})
+	}
 }

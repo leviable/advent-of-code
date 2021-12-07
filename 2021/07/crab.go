@@ -11,6 +11,13 @@ import (
 
 type NumMap map[int]int
 
+type Part int
+
+const (
+	PARTONE Part = iota
+	PARTTWO
+)
+
 func LoadInput(raw string) ([]int, error) {
 	input := strings.Split(raw, ",")
 	i := make([]int, len(input))
@@ -36,29 +43,39 @@ func FindMinMax(numbers []int) (min, max int) {
 			max = n
 		}
 	}
-	fmt.Printf("Min/Max: %d - %d\n", min, max)
 	return
 }
 
-func BuildMap(num, min, max int) (NumMap, error) {
+func BuildMap(num, min, max int, part Part) (NumMap, error) {
+	partTwoCost := make([]int, max+1)
+	c := 0
+	for moves := 0; moves <= max; moves++ {
+		c += moves
+		partTwoCost[moves] += c
+	}
 	m := make(NumMap)
 	if num < min || num > max {
 		return m, errors.New(fmt.Sprintf("Number %d not between %d and %d\n", num, min, max))
 	}
 	for x := min; x <= max; x++ {
-		m[x] = abs(x - num)
+		switch part {
+		case PARTONE:
+			m[x] = abs(x - num)
+		case PARTTWO:
+			m[x] = partTwoCost[abs(x-num)]
+		}
 	}
 	return m, nil
 }
 
-func GetLeastFuelPosition(numbers []int) (int, error) {
+func GetLeastFuelPosition(numbers []int, part Part) (int, int, error) {
 	min, max := FindMinMax(numbers)
 
 	m := make(map[int]NumMap)
 	for x := min; x <= max; x++ {
-		numMap, err := BuildMap(x, min, max)
+		numMap, err := BuildMap(x, min, max, part)
 		if err != nil {
-			return -1, err
+			return -1, -1, err
 		}
 		m[x] = numMap
 	}
@@ -73,11 +90,10 @@ func GetLeastFuelPosition(numbers []int) (int, error) {
 		if leastFuel == -1 || fuel < leastFuel {
 			leastFuel = fuel
 			leastFuelPosition = x
-			fmt.Printf("Least fuel %d at position %d\n", leastFuel, leastFuelPosition)
 			continue
 		}
 	}
-	return leastFuelPosition, nil
+	return leastFuelPosition, leastFuel, nil
 }
 
 func abs(num int) int {
@@ -111,10 +127,17 @@ func main() {
 
 	fmt.Printf("Loaded %d crabs\n", len(numbers))
 
-	leastFuelPosition, err := GetLeastFuelPosition(numbers)
+	leastFuelPosition, leastFuel, err := GetLeastFuelPosition(numbers, PARTONE)
 	if err != nil {
 		panic(fmt.Sprint("got an error and didn't expect one: ", err))
 	}
 
-	fmt.Println("Least fuel position is: ", leastFuelPosition)
+	fmt.Printf("Part One Pos/Fuel: %d -> %d\n", leastFuelPosition, leastFuel)
+
+	leastFuelPosition, leastFuel, err = GetLeastFuelPosition(numbers, PARTTWO)
+	if err != nil {
+		panic(fmt.Sprint("got an error and didn't expect one: ", err))
+	}
+
+	fmt.Printf("Part Two Pos/Fuel: %d -> %d\n", leastFuelPosition, leastFuel)
 }

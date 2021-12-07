@@ -57,35 +57,31 @@ func TestFishAging(t *testing.T) {
 
 func TestSpawning(t *testing.T) {
 	fish := []struct {
-		name            string
-		age             int
-		wantFish        *LanternFish
-		wantSpawnSignal spawnSignal
+		name string
+		age  int
+		want spawnSignal
 	}{
-		{name: "about to spawn", age: 0, wantFish: &LanternFish{NEWFISHTIMER}, wantSpawnSignal: NEWSPAWN},
-		{name: "won't spawn", age: 1, wantFish: &LanternFish{NEWFISHTIMER}, wantSpawnSignal: NOSPAWN},
+		{name: "about to spawn", age: 0, want: NEWSPAWN},
+		{name: "won't spawn", age: 1, want: NOSPAWN},
 	}
 	for _, tt := range fish {
 		t.Run(tt.name, func(t *testing.T) {
 			f := &LanternFish{tt.age}
 
-			gotFish, gotSpawnSignal := f.GrowOlder()
+			got := f.GrowOlder()
 
-			if !reflect.DeepEqual(gotFish, tt.wantFish) {
-				t.Errorf("got %v, want %v", gotFish, tt.wantFish)
-			}
-
-			if gotSpawnSignal != tt.wantSpawnSignal {
-				t.Errorf("got %q, want %q", gotSpawnSignal, tt.wantSpawnSignal)
+			if got != tt.want {
+				t.Errorf("got %q, want %q", got, tt.want)
 			}
 		})
 	}
 }
 
 func TestNewSchool(t *testing.T) {
+	daysToAge := 10
 	fish, _ := LoadInput(input)
 
-	got := NewSchool(fish).Size()
+	got := NewSchool(fish, daysToAge).Size()
 	want := 5
 
 	if got != want {
@@ -102,18 +98,20 @@ func TestSchoolAging(t *testing.T) {
 	}{
 		{name: "after 1 day", days: 1, size: 5},
 		{name: "after 2 days", days: 2, size: 6},
+		{name: "after 3 days", days: 3, size: 7},
+		{name: "after 4 days", days: 4, size: 9},
+		{name: "after 11 days", days: 11, size: 15},
 		{name: "after 18 days", days: 18, size: 26},
 		{name: "after 80 days", days: 80, size: 5934},
+		{name: "after 170 days", days: 170, size: 5934},
 		{name: "after 256 days", days: 256, size: 26984457539},
 	}
 
 	for _, tt := range days {
 		t.Run(tt.name, func(t *testing.T) {
 			fish, _ := LoadInput(input)
-			school := NewSchool(fish)
-			for x := 0; x < tt.days; x++ {
-				school.NextDay()
-			}
+			school := NewSchool(fish, tt.days)
+			school.Grow()
 			got := school.Size()
 			want := tt.size
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -20,8 +21,9 @@ func TestLoadInput(t *testing.T) {
 	got := LoadInput(input)
 	want := []Pattern{
 		Pattern{
-			wires:  []string{"be", "cfbegad", "cbdgef", "fgaecd", "cgeb", "fdcge", "agebfd", "fecdb", "fabcd", "edb"},
-			output: []string{"fdgacbe", "cefdb", "cefbgd", "gcbe"},
+			wires:   []string{"be", "cfbegad", "cbdgef", "fgaecd", "cgeb", "fdcge", "agebfd", "fecdb", "fabcd", "edb"},
+			decoder: decoder{},
+			output:  []string{"fdgacbe", "cefdb", "cefbgd", "gcbe"},
 		},
 	}
 
@@ -36,6 +38,74 @@ func TestCountUniqueDigits(t *testing.T) {
 
 	got := CountUniqueDigits(patterns)
 	want := 26
+
+	if got != want {
+		t.Errorf("got %d, want %d", got, want)
+	}
+}
+
+func TestSegmentContains(t *testing.T) {
+	got := SegmentContains("abcdef", "abef")
+	want := true
+
+	if got != want {
+		t.Errorf("got %t, want %t", got, want)
+	}
+}
+
+func TestDecoder(t *testing.T) {
+	t.Run("decoder", func(t *testing.T) {
+		pattern := LoadInput("acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab | cdfeb fcadb cdfeb cdbaf")[0]
+		Decode(&pattern)
+
+		got := pattern.decoder
+		want := decoder{
+			"abcdefg": 8,
+			"bcdef":   5,
+			"acdfg":   2,
+			"abcdf":   3,
+			"abd":     7,
+			"abcdef":  9,
+			"bcdefg":  6,
+			"abef":    4,
+			"abcdeg":  0,
+			"ab":      1,
+		}
+
+		if fmt.Sprint(got) != fmt.Sprint(want) {
+			t.Errorf("got %v, want %v", got, want)
+		}
+
+		gotValue := pattern.value
+		wantValue := 5353
+		if gotValue != wantValue {
+			t.Errorf("got %v, want %v", gotValue, wantValue)
+		}
+	})
+
+	t.Run("single line decode", func(t *testing.T) {
+		pattern := LoadInput("be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe")[0]
+		Decode(&pattern)
+
+		got := pattern.value
+		want := 8394
+
+		if got != want {
+			t.Errorf("got %d, want %d", got, want)
+		}
+
+	})
+
+}
+
+func TestSum(t *testing.T) {
+	got := 0
+	for _, pattern := range LoadInput(input) {
+		Decode(&pattern)
+		got += pattern.value
+	}
+
+	want := 61229
 
 	if got != want {
 		t.Errorf("got %d, want %d", got, want)

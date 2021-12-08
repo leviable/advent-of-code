@@ -7,11 +7,21 @@ import (
 	"strings"
 )
 
+type Part int
+
+const (
+	PARTONE Part = iota
+	PARTTWO
+)
+
 var UpOrDown = map[string]int{"(": 1, ")": -1}
 
-func DecodeDirections(directions string) (floor int) {
-	for _, d := range strings.Split(directions, "") {
+func DecodeDirections(directions string, part Part) (floor int) {
+	for idx, d := range strings.Split(directions, "") {
 		floor += UpOrDown[d]
+		if part == PARTTWO && floor < 0 {
+			return idx + 1
+		}
 	}
 
 	return
@@ -34,5 +44,6 @@ func main() {
 		panic(fmt.Sprint("Error scanning file: ", err))
 	}
 
-	fmt.Println("Last floor is: ", DecodeDirections(input[0]))
+	fmt.Println("Last floor is: ", DecodeDirections(input[0], PARTONE))
+	fmt.Println("First time to basement is: ", DecodeDirections(input[0], PARTTWO))
 }

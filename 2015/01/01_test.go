@@ -19,12 +19,21 @@ func TestDecodeDirections(t *testing.T) {
 	}
 	for _, tt := range examples {
 		t.Run(tt.directions, func(t *testing.T) {
-			got := DecodeDirections(tt.directions)
+			got := DecodeDirections(tt.directions, PARTONE)
 			want := tt.want
 
 			if got != want {
 				t.Errorf("got %d, want %d", got, want)
 			}
 		})
+	}
+}
+
+func TestEntersBasement(t *testing.T) {
+	got := DecodeDirections(")", PARTTWO)
+	want := 1
+
+	if got != want {
+		t.Errorf("got %d, want %d", got, want)
 	}
 }
